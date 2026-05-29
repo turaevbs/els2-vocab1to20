@@ -1,0 +1,3067 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#0d1117" />
+  <title>ELS2 Vocabulary Trainer</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+    #root{min-height:100vh}
+    select option{background:#1a1f2e;color:#c5cae9}
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-track{background:#0d1117}
+    ::-webkit-scrollbar-thumb{background:#2e3a5a;border-radius:2px}
+    button{-webkit-appearance:none;appearance:none;cursor:pointer}
+    textarea,input{-webkit-appearance:none;appearance:none}
+    #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;color:#5c6bc0;font-size:15px;gap:16px;background:#0d1117}
+    .spinner{width:32px;height:32px;border:3px solid #1e2540;border-top:3px solid #5c6bc0;border-radius:50%;animation:spin 0.8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div class="spinner"></div>
+    <span>Yuklanmoqda...</span>
+  </div>
+  <div id="root" style="display:none"></div>
+  <script>
+const {
+  useState,
+  useEffect,
+  useCallback,
+  useRef
+} = React;
+const ALL_WORDS = [
+// 1 - Health Education
+{
+  id: 1,
+  topic: "Health Education",
+  word: "effective",
+  pos: "adjective",
+  definition: "having desirable results",
+  uz: "samarali"
+}, {
+  id: 2,
+  topic: "Health Education",
+  word: "conducted",
+  pos: "verb",
+  definition: "carry out; performed",
+  uz: "o'tkazilgan, amalga oshirilgan"
+}, {
+  id: 3,
+  topic: "Health Education",
+  word: "resort to",
+  pos: "phrase",
+  definition: "apply to a solution when there is no other way",
+  uz: "murojaat qilmoq, majbur bo'lmoq"
+}, {
+  id: 4,
+  topic: "Health Education",
+  word: "barrier",
+  pos: "noun",
+  definition: "obstacle",
+  uz: "to'siq"
+}, {
+  id: 5,
+  topic: "Health Education",
+  word: "diffident",
+  pos: "adjective",
+  definition: "lacking confidence",
+  uz: "ishonchsiz, tortinchoq"
+}, {
+  id: 6,
+  topic: "Health Education",
+  word: "consult",
+  pos: "verb",
+  definition: "go to a person for advice",
+  uz: "maslahat so'ramoq"
+}, {
+  id: 7,
+  topic: "Health Education",
+  word: "at the other end of the scale",
+  pos: "phrase",
+  definition: "just the opposite",
+  uz: "mutlaqo teskari holat"
+}, {
+  id: 8,
+  topic: "Health Education",
+  word: "infallible",
+  pos: "adjective",
+  definition: "faultless; never wrong",
+  uz: "xatosiz, adashmaydigan"
+}, {
+  id: 9,
+  topic: "Health Education",
+  word: "miraculous",
+  pos: "adjective",
+  definition: "close to impossibility; like a miracle",
+  uz: "mo'jizaviy"
+}, {
+  id: 10,
+  topic: "Health Education",
+  word: "thus",
+  pos: "adverb",
+  definition: "so; in this way",
+  uz: "shunday qilib"
+}, {
+  id: 11,
+  topic: "Health Education",
+  word: "emerges",
+  pos: "verb",
+  definition: "appear; come out",
+  uz: "paydo bo'lmoq"
+}, {
+  id: 12,
+  topic: "Health Education",
+  word: "respond",
+  pos: "verb",
+  definition: "react favourably",
+  uz: "yaxshi javob bermoq"
+}, {
+  id: 13,
+  topic: "Health Education",
+  word: "circumstances",
+  pos: "noun",
+  definition: "situation; conditions",
+  uz: "holat, vaziyat"
+}, {
+  id: 14,
+  topic: "Health Education",
+  word: "inflammation",
+  pos: "noun",
+  definition: "hot and painful swelling of an injury",
+  uz: "yallig'lanish"
+},
+// 2 - Darwin's Theory of Evolution
+{
+  id: 15,
+  topic: "Darwin's Theory of Evolution",
+  word: "evolution",
+  pos: "noun",
+  definition: "process of change over the years due to environmental conditions",
+  uz: "evolyutsiya, rivojlanish"
+}, {
+  id: 16,
+  topic: "Darwin's Theory of Evolution",
+  word: "stir",
+  pos: "noun",
+  definition: "disturbance; commotion",
+  uz: "g'alayon, shovqin-suron"
+}, {
+  id: 17,
+  topic: "Darwin's Theory of Evolution",
+  word: "origin",
+  pos: "noun",
+  definition: "starting-point; source",
+  uz: "kelib chiqish"
+}, {
+  id: 18,
+  topic: "Darwin's Theory of Evolution",
+  word: "species",
+  pos: "noun",
+  definition: "group of animals sharing many common characteristics",
+  uz: "tur (biologik tur)"
+}, {
+  id: 19,
+  topic: "Darwin's Theory of Evolution",
+  word: "ignorant",
+  pos: "adjective",
+  definition: "uneducated; lacking knowledge",
+  uz: "bilimsiz"
+}, {
+  id: 20,
+  topic: "Darwin's Theory of Evolution",
+  word: "alike",
+  pos: "adverb",
+  definition: "in the same way; similarly",
+  uz: "bir xil, o'xshash"
+}, {
+  id: 21,
+  topic: "Darwin's Theory of Evolution",
+  word: "bitter",
+  pos: "adjective",
+  definition: "extremely unpleasant; harsh",
+  uz: "achchiq, keskin"
+}, {
+  id: 22,
+  topic: "Darwin's Theory of Evolution",
+  word: "on scientific grounds",
+  pos: "phrase",
+  definition: "for scientific reasons",
+  uz: "ilmiy asosda"
+}, {
+  id: 23,
+  topic: "Darwin's Theory of Evolution",
+  word: "refusal to return abuse",
+  pos: "phrase",
+  definition: "declining to reply back with insults",
+  uz: "haqoratga javob qaytarmaslik"
+}, {
+  id: 24,
+  topic: "Darwin's Theory of Evolution",
+  word: "pouring scorn on",
+  pos: "phrase",
+  definition: "cover with contempt; mock",
+  uz: "mensimaslik, masxara qilish"
+}, {
+  id: 25,
+  topic: "Darwin's Theory of Evolution",
+  word: "violent",
+  pos: "adjective",
+  definition: "fierce; aggressive",
+  uz: "keskin, zo'ravon"
+}, {
+  id: 26,
+  topic: "Darwin's Theory of Evolution",
+  word: "stormy outbursts",
+  pos: "phrase",
+  definition: "feverish attacks; intense emotional reactions",
+  uz: "kuchli norozilik chiqishlari"
+}, {
+  id: 27,
+  topic: "Darwin's Theory of Evolution",
+  word: "conquered",
+  pos: "verb",
+  definition: "win; overcome",
+  uz: "yengib chiqmoq"
+},
+// 3 - Timing the Criticism
+{
+  id: 28,
+  topic: "Timing the Criticism",
+  word: "moral instruction",
+  pos: "phrase",
+  definition: "directions for right behaviour; ethical guidance",
+  uz: "axloqiy tarbiya"
+}, {
+  id: 29,
+  topic: "Timing the Criticism",
+  word: "absorbed (in)",
+  pos: "adjective",
+  definition: "involved and concentrated in something",
+  uz: "berilib ketgan"
+}, {
+  id: 30,
+  topic: "Timing the Criticism",
+  word: "passes over his head",
+  pos: "phrase",
+  definition: "go in one ear and out the other; not understood",
+  uz: "tushunmay o'tib ketmoq"
+}, {
+  id: 31,
+  topic: "Timing the Criticism",
+  word: "cuddles up",
+  pos: "phrase",
+  definition: "curl up for warmth or comfort",
+  uz: "quchoqlab yotmoq"
+}, {
+  id: 32,
+  topic: "Timing the Criticism",
+  word: "is apt to",
+  pos: "phrase",
+  definition: "have a tendency to do something",
+  uz: "moyil bo'lmoq"
+}, {
+  id: 33,
+  topic: "Timing the Criticism",
+  word: "spoils",
+  pos: "verb",
+  definition: "ruin; damage",
+  uz: "buzmoq"
+}, {
+  id: 34,
+  topic: "Timing the Criticism",
+  word: "sets up",
+  pos: "phrase",
+  definition: "initiate; start; create",
+  uz: "boshlamoq"
+}, {
+  id: 35,
+  topic: "Timing the Criticism",
+  word: "mental struggle",
+  pos: "phrase",
+  definition: "argument in the mind; inner conflict",
+  uz: "ichki kurash"
+}, {
+  id: 36,
+  topic: "Timing the Criticism",
+  word: "fatigue",
+  pos: "noun",
+  definition: "exhaustion; extreme tiredness",
+  uz: "charchoq"
+}, {
+  id: 37,
+  topic: "Timing the Criticism",
+  word: "psychic",
+  pos: "adjective",
+  definition: "of the mind; mental",
+  uz: "ruhiy"
+}, {
+  id: 38,
+  topic: "Timing the Criticism",
+  word: "physical",
+  pos: "adjective",
+  definition: "of the body; bodily",
+  uz: "jismoniy"
+}, {
+  id: 39,
+  topic: "Timing the Criticism",
+  word: "creative impulse",
+  pos: "phrase",
+  definition: "the motivation to create",
+  uz: "ijodiy turtki"
+}, {
+  id: 40,
+  topic: "Timing the Criticism",
+  word: "sense of inferiority",
+  pos: "phrase",
+  definition: "undervaluing oneself; feeling less than others",
+  uz: "o'zini past baholash"
+}, {
+  id: 41,
+  topic: "Timing the Criticism",
+  word: "neurotic disorders",
+  pos: "noun phrase",
+  definition: "disturbance of the mind; mental instability",
+  uz: "asabiy buzilishlar"
+}, {
+  id: 42,
+  topic: "Timing the Criticism",
+  word: "incapacitate",
+  pos: "verb",
+  definition: "make unable; handicap",
+  uz: "qobiliyatsiz qilmoq"
+},
+// 4 - Hagia Sophia
+{
+  id: 43,
+  topic: "Hagia Sophia",
+  word: "consecrated",
+  pos: "verb",
+  definition: "officially declare a building or object to be holy",
+  uz: "muqaddas deb e'lon qilmoq"
+}, {
+  id: 44,
+  topic: "Hagia Sophia",
+  word: "wisdom",
+  pos: "noun",
+  definition: "knowledge or understanding of what is true and right",
+  uz: "donolik"
+}, {
+  id: 45,
+  topic: "Hagia Sophia",
+  word: "fireproof",
+  pos: "adjective",
+  definition: "unable to be damaged by fire",
+  uz: "olovga chidamli"
+}, {
+  id: 46,
+  topic: "Hagia Sophia",
+  word: "immense",
+  pos: "adjective",
+  definition: "extremely large",
+  uz: "juda ulkan"
+}, {
+  id: 47,
+  topic: "Hagia Sophia",
+  word: "pillars",
+  pos: "noun",
+  definition: "tall columns of stone or wood that support a building",
+  uz: "ustunlar"
+}, {
+  id: 48,
+  topic: "Hagia Sophia",
+  word: "molten",
+  pos: "adjective",
+  definition: "liquefied form of something solid, e.g. metal",
+  uz: "eritilgan"
+}, {
+  id: 49,
+  topic: "Hagia Sophia",
+  word: "arches",
+  pos: "noun",
+  definition: "curved structures in a building, e.g. above a door",
+  uz: "ravoq"
+}, {
+  id: 50,
+  topic: "Hagia Sophia",
+  word: "lesser",
+  pos: "adjective",
+  definition: "smaller; of lower rank",
+  uz: "kichikroq"
+}, {
+  id: 51,
+  topic: "Hagia Sophia",
+  word: "dome",
+  pos: "noun",
+  definition: "a round roof, e.g. the roof of a mosque",
+  uz: "gumbaz"
+}, {
+  id: 52,
+  topic: "Hagia Sophia",
+  word: "overwhelming",
+  pos: "adjective",
+  definition: "causing a feeling of being small, helpless, and astonished",
+  uz: "hayratda qoldiruvchi"
+}, {
+  id: 53,
+  topic: "Hagia Sophia",
+  word: "defy",
+  pos: "verb",
+  definition: "go against; refuse to obey",
+  uz: "qarshi chiqmoq"
+}, {
+  id: 54,
+  topic: "Hagia Sophia",
+  word: "gravity",
+  pos: "noun",
+  definition: "the force which makes things stay on or drop to the ground",
+  uz: "tortishish kuchi"
+}, {
+  id: 55,
+  topic: "Hagia Sophia",
+  word: "noted",
+  pos: "adjective",
+  definition: "well-known; admired",
+  uz: "mashhur"
+}, {
+  id: 56,
+  topic: "Hagia Sophia",
+  word: "temple",
+  pos: "noun",
+  definition: "building used for worship",
+  uz: "ibodatxona"
+}, {
+  id: 57,
+  topic: "Hagia Sophia",
+  word: "ornaments",
+  pos: "noun",
+  definition: "things used for decoration",
+  uz: "bezaklar"
+}, {
+  id: 58,
+  topic: "Hagia Sophia",
+  word: "chandeliers",
+  pos: "noun",
+  definition: "something hanging from the ceiling with branches of lights",
+  uz: "qandil"
+}, {
+  id: 59,
+  topic: "Hagia Sophia",
+  word: "hide",
+  pos: "verb",
+  definition: "conceal; keep out of sight",
+  uz: "yashirmoq"
+},
+// 5 - The Lost Settlers
+{
+  id: 60,
+  topic: "The Lost Settlers",
+  word: "set up",
+  pos: "phrase",
+  definition: "establish; start an organization",
+  uz: "tashkil etmoq"
+}, {
+  id: 61,
+  topic: "The Lost Settlers",
+  word: "expedition",
+  pos: "noun",
+  definition: "organized journey with several people for a special reason",
+  uz: "ekspeditsiya"
+}, {
+  id: 62,
+  topic: "The Lost Settlers",
+  word: "deserted",
+  pos: "adjective",
+  definition: "empty because everyone has left",
+  uz: "tashlab ketilgan"
+}, {
+  id: 63,
+  topic: "The Lost Settlers",
+  word: "indications",
+  pos: "noun",
+  definition: "signs or clues which give an idea about something",
+  uz: "ishoralar, belgilar"
+}, {
+  id: 64,
+  topic: "The Lost Settlers",
+  word: "scratched",
+  pos: "verb",
+  definition: "make marks on something using something sharp",
+  uz: "tirnamoq, chizib yozmoq"
+}, {
+  id: 65,
+  topic: "The Lost Settlers",
+  word: "inland",
+  pos: "adverb",
+  definition: "away from the sea; towards the middle of a country",
+  uz: "ichki hudud"
+}, {
+  id: 66,
+  topic: "The Lost Settlers",
+  word: "explorers",
+  pos: "noun",
+  definition: "people who travel to a place to find out about it",
+  uz: "tadqiqotchilar, sayyohlar"
+}, {
+  id: 67,
+  topic: "The Lost Settlers",
+  word: "pale",
+  pos: "adjective",
+  definition: "light in colour, especially for skin",
+  uz: "oqish, rangsiz"
+}, {
+  id: 68,
+  topic: "The Lost Settlers",
+  word: "remote",
+  pos: "adjective",
+  definition: "far from other places and people",
+  uz: "olis, uzoq"
+}, {
+  id: 69,
+  topic: "The Lost Settlers",
+  word: "curious",
+  pos: "adjective",
+  definition: "unusual; strange; interesting",
+  uz: "g'alati, qiziq"
+}, {
+  id: 70,
+  topic: "The Lost Settlers",
+  word: "lanky",
+  pos: "adjective",
+  definition: "tall and thin, often looking clumsy",
+  uz: "uzun va oriqlik"
+}, {
+  id: 71,
+  topic: "The Lost Settlers",
+  word: "distinctly",
+  pos: "adverb",
+  definition: "very clearly; unmistakably",
+  uz: "aniq, ravshan"
+},
+// 6 - To Take Up Exercise
+{
+  id: 72,
+  topic: "To Take Up Exercise",
+  word: "long-term",
+  pos: "adjective",
+  definition: "relating to a long period of time",
+  uz: "uzoq muddatli"
+}, {
+  id: 73,
+  topic: "To Take Up Exercise",
+  word: "maintenance",
+  pos: "noun",
+  definition: "keeping something in the same condition",
+  uz: "saqlab turish"
+}, {
+  id: 74,
+  topic: "To Take Up Exercise",
+  word: "switching to",
+  pos: "phrase",
+  definition: "change to something different",
+  uz: "o'tish, almashtirish"
+}, {
+  id: 75,
+  topic: "To Take Up Exercise",
+  word: "physical exertion",
+  pos: "phrase",
+  definition: "effort; physical exercise",
+  uz: "jismoniy harakat"
+}, {
+  id: 76,
+  topic: "To Take Up Exercise",
+  word: "shed",
+  pos: "verb",
+  definition: "lose; get rid of",
+  uz: "yo'qotmoq"
+}, {
+  id: 77,
+  topic: "To Take Up Exercise",
+  word: "pound",
+  pos: "noun",
+  definition: "weight measurement, approximately 0.45 kilograms",
+  uz: "funt"
+}, {
+  id: 78,
+  topic: "To Take Up Exercise",
+  word: "combining",
+  pos: "verb",
+  definition: "join or do things together",
+  uz: "birlashtirmoq"
+}, {
+  id: 79,
+  topic: "To Take Up Exercise",
+  word: "rejecting",
+  pos: "verb",
+  definition: "say no to; not accept",
+  uz: "rad etmoq"
+}, {
+  id: 80,
+  topic: "To Take Up Exercise",
+  word: "unduly",
+  pos: "adverb",
+  definition: "unnecessarily; excessively",
+  uz: "ortiqcha, keraksiz"
+}, {
+  id: 81,
+  topic: "To Take Up Exercise",
+  word: "caloric expenditure",
+  pos: "phrase",
+  definition: "using of bodily energy; calories burned",
+  uz: "kaloriyalar sarfi"
+}, {
+  id: 82,
+  topic: "To Take Up Exercise",
+  word: "briskly",
+  pos: "adverb",
+  definition: "quickly; energetically",
+  uz: "tez, chaqqon"
+}, {
+  id: 83,
+  topic: "To Take Up Exercise",
+  word: "work off",
+  pos: "phrasal verb",
+  definition: "exercise to get rid of; burn away",
+  uz: "yo'qotib yubormoq (mashq orqali)"
+}, {
+  id: 84,
+  topic: "To Take Up Exercise",
+  word: "scrumptious",
+  pos: "adjective",
+  definition: "extremely delicious",
+  uz: "juda mazali"
+}, {
+  id: 85,
+  topic: "To Take Up Exercise",
+  word: "concede",
+  pos: "verb",
+  definition: "admit; accept something is true, often unwillingly",
+  uz: "tan olmoq"
+}, {
+  id: 86,
+  topic: "To Take Up Exercise",
+  word: "confirmed",
+  pos: "verb",
+  definition: "agree; say something is true because you have information",
+  uz: "tasdiqlamoq"
+}, {
+  id: 87,
+  topic: "To Take Up Exercise",
+  word: "sedentary",
+  pos: "adjective",
+  definition: "not moving; sitting down a lot; inactive",
+  uz: "kam harakatli"
+}, {
+  id: 88,
+  topic: "To Take Up Exercise",
+  word: "adjustments",
+  pos: "noun",
+  definition: "changes made in order to make something suitable",
+  uz: "moslashuvlar"
+},
+// 7 - Japanese Employees
+{
+  id: 89,
+  topic: "Japanese Employees",
+  word: "loyal",
+  pos: "adjective",
+  definition: "faithful; devoted",
+  uz: "sodiq"
+}, {
+  id: 90,
+  topic: "Japanese Employees",
+  word: "firm",
+  pos: "noun",
+  definition: "company or business",
+  uz: "kompaniya, firma"
+}, {
+  id: 91,
+  topic: "Japanese Employees",
+  word: "laid off",
+  pos: "phrasal verb",
+  definition: "be made redundant; lose one's job",
+  uz: "ishdan bo'shatilmoq"
+}, {
+  id: 92,
+  topic: "Japanese Employees",
+  word: "seniority",
+  pos: "noun",
+  definition: "condition of being in a higher position based on years of service",
+  uz: "ish staji ustunligi"
+}, {
+  id: 93,
+  topic: "Japanese Employees",
+  word: "fringe benefits",
+  pos: "phrase",
+  definition: "extra things got from a job, e.g. pension, car",
+  uz: "qo'shimcha imtiyozlar"
+}, {
+  id: 94,
+  topic: "Japanese Employees",
+  word: "promotion",
+  pos: "noun",
+  definition: "advancement into a more important position at work",
+  uz: "lavozim ko'tarilishi"
+}, {
+  id: 95,
+  topic: "Japanese Employees",
+  word: "chief executives",
+  pos: "noun",
+  definition: "most important members of a company; top leaders",
+  uz: "bosh rahbarlar"
+}, {
+  id: 96,
+  topic: "Japanese Employees",
+  word: "junior staff",
+  pos: "noun",
+  definition: "lower level employees",
+  uz: "kichik xodimlar"
+},
+// 8 - Temperaments of Man and Woman
+{
+  id: 97,
+  topic: "Temperaments of Man and Woman",
+  word: "temperament",
+  pos: "noun",
+  definition: "basic nature or character of a person",
+  uz: "temperament, xarakter"
+}, {
+  id: 98,
+  topic: "Temperaments of Man and Woman",
+  word: "introvert",
+  pos: "noun",
+  definition: "person who thinks more about himself and is often shy",
+  uz: "introvert, ichiga yopiq odam"
+}, {
+  id: 99,
+  topic: "Temperaments of Man and Woman",
+  word: "extrovert",
+  pos: "noun",
+  definition: "person who is active, lively and sociable",
+  uz: "ochiqko'ngil, muloqotga kirishuvchi"
+}, {
+  id: 100,
+  topic: "Temperaments of Man and Woman",
+  word: "fiercely",
+  pos: "adverb",
+  definition: "strongly; intensely",
+  uz: "juda kuchli, keskin"
+}, {
+  id: 101,
+  topic: "Temperaments of Man and Woman",
+  word: "introspective",
+  pos: "adjective",
+  definition: "spending a lot of time examining one's own thoughts and feelings",
+  uz: "o'zini tahlil qiluvchi"
+}, {
+  id: 102,
+  topic: "Temperaments of Man and Woman",
+  word: "meditative",
+  pos: "adjective",
+  definition: "with careful and serious thought; reflective",
+  uz: "mulohazali, chuqur o'yli"
+}, {
+  id: 103,
+  topic: "Temperaments of Man and Woman",
+  word: "initiative",
+  pos: "noun",
+  definition: "the ability to make decisions and take action without waiting for others",
+  uz: "tashabbus"
+}, {
+  id: 104,
+  topic: "Temperaments of Man and Woman",
+  word: "complementary",
+  pos: "adjective",
+  definition: "combining in such a way as to enhance each other's qualities",
+  uz: "bir-birini to'ldiruvchi"
+}, {
+  id: 105,
+  topic: "Temperaments of Man and Woman",
+  word: "traits",
+  pos: "noun",
+  definition: "particular qualities or characteristics of a person",
+  uz: "xususiyatlar"
+}, {
+  id: 106,
+  topic: "Temperaments of Man and Woman",
+  word: "passive",
+  pos: "adjective",
+  definition: "not active; accepting what happens",
+  uz: "passiv, sust"
+}, {
+  id: 107,
+  topic: "Temperaments of Man and Woman",
+  word: "modest",
+  pos: "adjective",
+  definition: "not boasting; shy and simple",
+  uz: "kamtar"
+}, {
+  id: 108,
+  topic: "Temperaments of Man and Woman",
+  word: "self-assertive",
+  pos: "adjective",
+  definition: "confident; insisting on one's own rights or opinions",
+  uz: "o'z fikrini qat'iy bildirish"
+},
+// 9 - Active Noise Control
+{
+  id: 109,
+  topic: "Active Noise Control",
+  word: "guy",
+  pos: "noun",
+  definition: "man (informal)",
+  uz: "yigit, odam"
+}, {
+  id: 110,
+  topic: "Active Noise Control",
+  word: "rattling",
+  pos: "verb/adjective",
+  definition: "make lots of short, rapid, knocking sounds",
+  uz: "taqillash, jiringlash"
+}, {
+  id: 111,
+  topic: "Active Noise Control",
+  word: "china",
+  pos: "noun",
+  definition: "cups, saucers, plates made of fine ceramic",
+  uz: "chinni idishlar"
+}, {
+  id: 112,
+  topic: "Active Noise Control",
+  word: "booming",
+  pos: "adjective",
+  definition: "making a loud, deep, echoing sound",
+  uz: "jarangdor, gumburlovchi"
+}, {
+  id: 113,
+  topic: "Active Noise Control",
+  word: "crank up",
+  pos: "phrasal verb",
+  definition: "switch on or turn up to a very high level quickly",
+  uz: "juda baland qilish"
+}, {
+  id: 114,
+  topic: "Active Noise Control",
+  word: "drown out",
+  pos: "phrasal verb",
+  definition: "make one sound so loud that another cannot be heard",
+  uz: "bosib ketmoq (ovozni)"
+}, {
+  id: 115,
+  topic: "Active Noise Control",
+  word: "sophisticated",
+  pos: "adjective",
+  definition: "clever; complex and advanced",
+  uz: "murakkab, zamonaviy"
+}, {
+  id: 116,
+  topic: "Active Noise Control",
+  word: "mirror image",
+  pos: "phrase",
+  definition: "reflection which is exactly the same or the same but reversed",
+  uz: "aks tasvir"
+}, {
+  id: 117,
+  topic: "Active Noise Control",
+  word: "zap",
+  pos: "verb",
+  definition: "eliminate by shooting; destroy quickly",
+  uz: "yo'q qilmoq, urib yo'qotmoq"
+}, {
+  id: 118,
+  topic: "Active Noise Control",
+  word: "stifle",
+  pos: "verb",
+  definition: "stop from continuing; suppress",
+  uz: "bo'g'moq, to'xtatmoq"
+}, {
+  id: 119,
+  topic: "Active Noise Control",
+  word: "fanciful",
+  pos: "adjective",
+  definition: "imaginary; not based on reality",
+  uz: "xayoliy"
+}, {
+  id: 120,
+  topic: "Active Noise Control",
+  word: "din",
+  pos: "noun",
+  definition: "long-lasting, loud and unpleasant noise",
+  uz: "shovqin-suron"
+}, {
+  id: 121,
+  topic: "Active Noise Control",
+  word: "instantaneously",
+  pos: "adverb",
+  definition: "immediately; without delay",
+  uz: "darhol"
+}, {
+  id: 122,
+  topic: "Active Noise Control",
+  word: "inverse",
+  pos: "adjective",
+  definition: "reversed; exactly opposite",
+  uz: "teskari"
+},
+// 10 - Faith in Drugs
+{
+  id: 123,
+  topic: "Faith in Drugs",
+  word: "skeptical",
+  pos: "adjective",
+  definition: "questioning; full of doubts; not likely to believe something",
+  uz: "shubhali, ishonmaydigan"
+}, {
+  id: 124,
+  topic: "Faith in Drugs",
+  word: "forefathers",
+  pos: "noun",
+  definition: "ancestors; people who lived long ago in your family",
+  uz: "ajdodlar"
+}, {
+  id: 125,
+  topic: "Faith in Drugs",
+  word: "fervently",
+  pos: "adverb",
+  definition: "passionately; strongly and sincerely",
+  uz: "chin dildan, qizg'in"
+}, {
+  id: 126,
+  topic: "Faith in Drugs",
+  word: "outpatients",
+  pos: "noun",
+  definition: "person receiving hospital treatment during the day without staying overnight",
+  uz: "kunduzgi bemor"
+}, {
+  id: 127,
+  topic: "Faith in Drugs",
+  word: "tangible",
+  pos: "adjective",
+  definition: "concrete; able to be seen or touched; real",
+  uz: "aniq, sezilarli"
+}, {
+  id: 128,
+  topic: "Faith in Drugs",
+  word: "ointment",
+  pos: "noun",
+  definition: "thick, medicinal substance used on the skin",
+  uz: "surtma dori"
+}, {
+  id: 129,
+  topic: "Faith in Drugs",
+  word: "grant",
+  pos: "verb",
+  definition: "give to; allow to have",
+  uz: "bermoq, ruxsat bermoq"
+},
+// 11 - The Loch Ness Monster
+{
+  id: 130,
+  topic: "The Loch Ness Monster",
+  word: "overlooked",
+  pos: "verb",
+  definition: "have a view of from above",
+  uz: "yuqoridan ko'rinib turmoq"
+}, {
+  id: 131,
+  topic: "The Loch Ness Monster",
+  word: "brooding",
+  pos: "adjective",
+  definition: "threatening; causing one to feel nervous",
+  uz: "qo'rqinchli, g'amgin"
+}, {
+  id: 132,
+  topic: "The Loch Ness Monster",
+  word: "moorland",
+  pos: "noun",
+  definition: "open, uncultivated area of land, usually high",
+  uz: "tog'li ochiq yer"
+}, {
+  id: 133,
+  topic: "The Loch Ness Monster",
+  word: "upheaval",
+  pos: "noun",
+  definition: "disturbance; great disruption",
+  uz: "katta o'zgarish, g'alayon"
+}, {
+  id: 134,
+  topic: "The Loch Ness Monster",
+  word: "churned",
+  pos: "verb",
+  definition: "move or stir violently",
+  uz: "qattiq qaynamoq, aralashmoq"
+}, {
+  id: 135,
+  topic: "The Loch Ness Monster",
+  word: "buzzing",
+  pos: "verb/adjective",
+  definition: "showing a lot of activity; full of excitement",
+  uz: "shovqin-suronli, faol"
+}, {
+  id: 136,
+  topic: "The Loch Ness Monster",
+  word: "banished",
+  pos: "verb",
+  definition: "send away and not allow to return, as a punishment",
+  uz: "haydab yubormoq"
+}, {
+  id: 137,
+  topic: "The Loch Ness Monster",
+  word: "stranded",
+  pos: "adjective",
+  definition: "be unable to leave a place; be stuck",
+  uz: "qolib ketgan"
+}, {
+  id: 138,
+  topic: "The Loch Ness Monster",
+  word: "hazy",
+  pos: "adjective",
+  definition: "not clear or distinct; blurry",
+  uz: "xira, noaniq"
+}, {
+  id: 139,
+  topic: "The Loch Ness Monster",
+  word: "magnified",
+  pos: "verb",
+  definition: "made bigger in appearance",
+  uz: "kattalashtirilgan"
+}, {
+  id: 140,
+  topic: "The Loch Ness Monster",
+  word: "humps",
+  pos: "noun",
+  definition: "round lumps, e.g. on the back of a camel",
+  uz: "do'ngliklar"
+},
+// 12 - The Puffer Fish
+{
+  id: 141,
+  topic: "The Puffer Fish",
+  word: "honorable",
+  pos: "adjective",
+  definition: "worthy of respect or admiration",
+  uz: "hurmatga sazovor"
+}, {
+  id: 142,
+  topic: "The Puffer Fish",
+  word: "gourmet",
+  pos: "adjective",
+  definition: "involving high-quality or exotic ingredients and skilled preparation",
+  uz: "yuqori sifatli taomga oid"
+}, {
+  id: 143,
+  topic: "The Puffer Fish",
+  word: "feeble",
+  pos: "adjective",
+  definition: "weak; lacking energy or strength",
+  uz: "zaif, kuchsiz"
+}, {
+  id: 144,
+  topic: "The Puffer Fish",
+  word: "hint",
+  pos: "noun",
+  definition: "clue; slight indication",
+  uz: "ishora"
+}, {
+  id: 145,
+  topic: "The Puffer Fish",
+  word: "gleaming",
+  pos: "adjective",
+  definition: "reflecting light; softly shining",
+  uz: "yaltirab turgan"
+}, {
+  id: 146,
+  topic: "The Puffer Fish",
+  word: "jaws",
+  pos: "noun",
+  definition: "framework of the mouth to which the teeth are attached",
+  uz: "jag'"
+}, {
+  id: 147,
+  topic: "The Puffer Fish",
+  word: "agape",
+  pos: "adjective",
+  definition: "with the mouth wide open",
+  uz: "og'zi ochiq"
+}, {
+  id: 148,
+  topic: "The Puffer Fish",
+  word: "entrails",
+  pos: "noun",
+  definition: "inside parts of the body including the stomach",
+  uz: "ichki organlar"
+}, {
+  id: 149,
+  topic: "The Puffer Fish",
+  word: "fearsome",
+  pos: "adjective",
+  definition: "frightening; causing great fear",
+  uz: "qo'rqinchli"
+}, {
+  id: 150,
+  topic: "The Puffer Fish",
+  word: "reasonable",
+  pos: "adjective",
+  definition: "acceptable; not unusual",
+  uz: "normal, odatiy"
+}, {
+  id: 151,
+  topic: "The Puffer Fish",
+  word: "sphere",
+  pos: "noun",
+  definition: "globe; the shape of a ball",
+  uz: "shar shakli"
+}, {
+  id: 152,
+  topic: "The Puffer Fish",
+  word: "gulp",
+  pos: "verb",
+  definition: "swallow very quickly and in large amounts",
+  uz: "yutib yubormoq"
+}, {
+  id: 153,
+  topic: "The Puffer Fish",
+  word: "sac",
+  pos: "noun",
+  definition: "small bag-like structure containing air or liquid",
+  uz: "qopcha"
+}, {
+  id: 154,
+  topic: "The Puffer Fish",
+  word: "belly",
+  pos: "noun",
+  definition: "stomach; abdomen",
+  uz: "qorin"
+}, {
+  id: 155,
+  topic: "The Puffer Fish",
+  word: "swell",
+  pos: "verb",
+  definition: "become larger in volume and rounder",
+  uz: "shishmoq"
+}, {
+  id: 156,
+  topic: "The Puffer Fish",
+  word: "tough",
+  pos: "adjective",
+  definition: "strong; difficult to tear or cut",
+  uz: "mustahkam"
+}, {
+  id: 157,
+  topic: "The Puffer Fish",
+  word: "predators",
+  pos: "noun",
+  definition: "animals that hunt other animals for food",
+  uz: "yirtqichlar"
+}, {
+  id: 158,
+  topic: "The Puffer Fish",
+  word: "intimidate",
+  pos: "verb",
+  definition: "frighten; threaten; cause to lose confidence",
+  uz: "qo'rqitmoq"
+}, {
+  id: 159,
+  topic: "The Puffer Fish",
+  word: "squirt",
+  pos: "verb",
+  definition: "force liquid out through a narrow opening in a thin fast stream",
+  uz: "purkamoq"
+}, {
+  id: 160,
+  topic: "The Puffer Fish",
+  word: "deflating",
+  pos: "verb",
+  definition: "cause to become smaller by letting the air out",
+  uz: "puchaymoq, havo chiqarmoq"
+},
+// 13 - Spartacus
+{
+  id: 161,
+  topic: "Spartacus",
+  word: "slave",
+  pos: "noun",
+  definition: "a person owned by another and forced to work for them",
+  uz: "qul"
+}, {
+  id: 162,
+  topic: "Spartacus",
+  word: "struck fear into the hearts",
+  pos: "phrase",
+  definition: "produce feelings of terror in someone",
+  uz: "qo'rquv solmoq"
+}, {
+  id: 163,
+  topic: "Spartacus",
+  word: "constantly",
+  pos: "adverb",
+  definition: "continually; always; without stopping",
+  uz: "doimiy ravishda"
+}, {
+  id: 164,
+  topic: "Spartacus",
+  word: "menaced",
+  pos: "verb",
+  definition: "threaten; bring danger to",
+  uz: "tahdid qilmoq"
+}, {
+  id: 165,
+  topic: "Spartacus",
+  word: "calculated",
+  pos: "verb",
+  definition: "work out; make a firm guess about something",
+  uz: "hisoblab chiqmoq"
+}, {
+  id: 166,
+  topic: "Spartacus",
+  word: "outnumbered",
+  pos: "verb",
+  definition: "be larger in number than the other side",
+  uz: "son jihatdan ko'p bo'lmoq"
+}, {
+  id: 167,
+  topic: "Spartacus",
+  word: "resented",
+  pos: "verb",
+  definition: "feel angry and bitter about something",
+  uz: "norozi bo'lmoq, g'azablanmoq"
+}, {
+  id: 168,
+  topic: "Spartacus",
+  word: "brutal",
+  pos: "adjective",
+  definition: "rough and cruel; savage",
+  uz: "shafqatsiz"
+}, {
+  id: 169,
+  topic: "Spartacus",
+  word: "plantation labourers",
+  pos: "noun phrase",
+  definition: "people who do the work on a large farm",
+  uz: "plantatsiya ishchilari"
+}, {
+  id: 170,
+  topic: "Spartacus",
+  word: "capable",
+  pos: "adjective",
+  definition: "having ability; effective; competent",
+  uz: "qobiliyatli"
+}, {
+  id: 171,
+  topic: "Spartacus",
+  word: "withstood",
+  pos: "verb",
+  definition: "resist; remain unharmed despite attack",
+  uz: "bardosh bermoq, qarshilik ko'rsatmoq"
+}, {
+  id: 172,
+  topic: "Spartacus",
+  word: "formidable",
+  pos: "adjective",
+  definition: "hard to overcome; strong and powerful",
+  uz: "dahshatli, kuchli"
+}, {
+  id: 173,
+  topic: "Spartacus",
+  word: "runaway",
+  pos: "adjective",
+  definition: "escaped; having fled from captivity",
+  uz: "qochgan"
+}, {
+  id: 174,
+  topic: "Spartacus",
+  word: "terrorized",
+  pos: "verb",
+  definition: "frighten people by using violence",
+  uz: "qo'rqitmoq"
+}, {
+  id: 175,
+  topic: "Spartacus",
+  word: "insurrection",
+  pos: "noun",
+  definition: "rebellion; revolt against authority",
+  uz: "qo'zg'olon"
+}, {
+  id: 176,
+  topic: "Spartacus",
+  word: "crushed",
+  pos: "verb",
+  definition: "be destroyed; be finished off by force",
+  uz: "bostirilmoq"
+}, {
+  id: 177,
+  topic: "Spartacus",
+  word: "slain",
+  pos: "verb",
+  definition: "be killed; past participle of slay",
+  uz: "o'ldirilgan"
+},
+// 14 - The Chinese Language
+{
+  id: 178,
+  topic: "The Chinese Language",
+  word: "script",
+  pos: "noun",
+  definition: "any system of writing",
+  uz: "yozuv tizimi"
+}, {
+  id: 179,
+  topic: "The Chinese Language",
+  word: "consecutive",
+  pos: "adjective",
+  definition: "following one after the other without a break",
+  uz: "ketma-ket"
+}, {
+  id: 180,
+  topic: "The Chinese Language",
+  word: "continuity",
+  pos: "noun",
+  definition: "the state of being without a break; carrying on without interruption",
+  uz: "uzluksizlik"
+}, {
+  id: 181,
+  topic: "The Chinese Language",
+  word: "largely",
+  pos: "adverb",
+  definition: "mostly; mainly",
+  uz: "asosan"
+}, {
+  id: 182,
+  topic: "The Chinese Language",
+  word: "stand for",
+  pos: "phrase",
+  definition: "represent; symbolize",
+  uz: "ifodalamoq, anglatmoq"
+}, {
+  id: 183,
+  topic: "The Chinese Language",
+  word: "gradual",
+  pos: "adjective",
+  definition: "happening slowly and by degrees",
+  uz: "asta-sekin"
+}, {
+  id: 184,
+  topic: "The Chinese Language",
+  word: "emergence",
+  pos: "noun",
+  definition: "the state of developing and becoming known; coming into existence",
+  uz: "paydo bo'lish"
+}, {
+  id: 185,
+  topic: "The Chinese Language",
+  word: "dialect",
+  pos: "noun",
+  definition: "a variety of a language spoken in one part of a country",
+  uz: "sheva"
+}, {
+  id: 186,
+  topic: "The Chinese Language",
+  word: "modification",
+  pos: "noun",
+  definition: "a slight change made to something",
+  uz: "o'zgartirish"
+}, {
+  id: 187,
+  topic: "The Chinese Language",
+  word: "dominance",
+  pos: "noun",
+  definition: "importance; power; controlling influence",
+  uz: "ustunlik, hukmronlik"
+}, {
+  id: 188,
+  topic: "The Chinese Language",
+  word: "significant",
+  pos: "adjective",
+  definition: "noticeable; important; meaningful",
+  uz: "muhim"
+}, {
+  id: 189,
+  topic: "The Chinese Language",
+  word: "visual appeal",
+  pos: "phrase",
+  definition: "the power to attract the eye; visual attractiveness",
+  uz: "ko'rish jozibasi"
+}, {
+  id: 190,
+  topic: "The Chinese Language",
+  word: "give rise to",
+  pos: "phrase",
+  definition: "lead to; be the cause of; produce",
+  uz: "sabab bo'lmoq"
+}, {
+  id: 191,
+  topic: "The Chinese Language",
+  word: "calligraphy",
+  pos: "noun",
+  definition: "the art of producing beautiful handwriting",
+  uz: "xattotlik"
+}, {
+  id: 192,
+  topic: "The Chinese Language",
+  word: "comparable to",
+  pos: "phrase",
+  definition: "not less than; having equal value; similar in quality",
+  uz: "teng, qiyoslanadigan"
+},
+// 15 - Jacqueline Bouvier Kennedy Onassis
+{
+  id: 193,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "mystique",
+  pos: "noun",
+  definition: "a sense of mystery and attraction surrounding certain people",
+  uz: "sirli joziba"
+}, {
+  id: 194,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "due in great part to",
+  pos: "phrase",
+  definition: "to a large extent because of someone or something",
+  uz: "asosan tufayli"
+}, {
+  id: 195,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "glamorous",
+  pos: "adjective",
+  definition: "excitingly attractive in a sophisticated way",
+  uz: "jozibali, hashamatli"
+}, {
+  id: 196,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "grace",
+  pos: "noun",
+  definition: "a quality suggesting effortless charm and beauty",
+  uz: "nafislik"
+}, {
+  id: 197,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "flair",
+  pos: "noun",
+  definition: "a natural talent to appreciate or create something in a unique style",
+  uz: "iste'dod, did"
+}, {
+  id: 198,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "celebrity",
+  pos: "noun",
+  definition: "a famous person",
+  uz: "mashhur shaxs"
+}, {
+  id: 199,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "in her own right",
+  pos: "phrase",
+  definition: "through one's personal qualities rather than through others' help",
+  uz: "o'z kuchi bilan"
+}, {
+  id: 200,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "predecessors",
+  pos: "noun",
+  definition: "former holders of a position with respect to a later holder",
+  uz: "oldingi egalar"
+}, {
+  id: 201,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "accomplished",
+  pos: "adjective",
+  definition: "successful; highly skilled and talented",
+  uz: "mohir, tajribali"
+}, {
+  id: 202,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "hostess",
+  pos: "noun",
+  definition: "a woman who entertains guests",
+  uz: "mezbon ayol"
+}, {
+  id: 203,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "patron",
+  pos: "noun",
+  definition: "a person who supports artists or musicians financially",
+  uz: "homiy"
+}, {
+  id: 204,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "assassination",
+  pos: "noun",
+  definition: "the murder of an important person for political reasons",
+  uz: "suiqasd"
+}, {
+  id: 205,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "magnate",
+  pos: "noun",
+  definition: "a wealthy and powerful person, usually in business",
+  uz: "boy va qudratli biznesmen"
+}, {
+  id: 206,
+  topic: "Jacqueline Kennedy Onassis",
+  word: "media spotlight",
+  pos: "phrase",
+  definition: "the constant attention of newspapers, television, radio",
+  uz: "ommaviy axborot diqqat markazi"
+},
+// 16 - Exactly the Right Word
+{
+  id: 207,
+  topic: "Exactly the Right Word",
+  word: "concern",
+  pos: "noun",
+  definition: "interest in and care about something",
+  uz: "qiziqish, g'amxo'rlik"
+}, {
+  id: 208,
+  topic: "Exactly the Right Word",
+  word: "form",
+  pos: "noun",
+  definition: "the plan or design of a work of art",
+  uz: "shakl, tuzilma"
+}, {
+  id: 209,
+  topic: "Exactly the Right Word",
+  word: "detail",
+  pos: "noun",
+  definition: "a small, specific point of something",
+  uz: "tafsilot"
+}, {
+  id: 210,
+  topic: "Exactly the Right Word",
+  word: "struggled",
+  pos: "verb",
+  definition: "make great efforts to achieve something difficult",
+  uz: "qiynalmoq, kurashmoq"
+}, {
+  id: 211,
+  topic: "Exactly the Right Word",
+  word: "goal",
+  pos: "noun",
+  definition: "aim; the thing that one is trying to do",
+  uz: "maqsad"
+}, {
+  id: 212,
+  topic: "Exactly the Right Word",
+  word: "faultless",
+  pos: "adjective",
+  definition: "perfect; without any mistakes",
+  uz: "mukammal, xatosiz"
+}, {
+  id: 213,
+  topic: "Exactly the Right Word",
+  word: "prose",
+  pos: "noun",
+  definition: "ordinary written language as distinct from poetry",
+  uz: "nasr"
+}, {
+  id: 214,
+  topic: "Exactly the Right Word",
+  word: "revolt",
+  pos: "noun",
+  definition: "rebellion; strong reaction against something",
+  uz: "isyon"
+}, {
+  id: 215,
+  topic: "Exactly the Right Word",
+  word: "environment",
+  pos: "noun",
+  definition: "physical and social conditions in which people live",
+  uz: "muhit"
+}, {
+  id: 216,
+  topic: "Exactly the Right Word",
+  word: "reveals",
+  pos: "verb",
+  definition: "show; make something known to people",
+  uz: "oshkor qilmoq"
+}, {
+  id: 217,
+  topic: "Exactly the Right Word",
+  word: "contempt",
+  pos: "noun",
+  definition: "total lack of respect for someone or something",
+  uz: "mensimaslik, nafrat"
+}, {
+  id: 218,
+  topic: "Exactly the Right Word",
+  word: "bourgeoisie",
+  pos: "noun",
+  definition: "the middle class in society",
+  uz: "burjuaziya (o'rta sinf)"
+}, {
+  id: 219,
+  topic: "Exactly the Right Word",
+  word: "opposed to",
+  pos: "phrase",
+  definition: "unsupportive of; be against",
+  uz: "qarshi bo'lmoq"
+}, {
+  id: 220,
+  topic: "Exactly the Right Word",
+  word: "serial",
+  pos: "noun",
+  definition: "a story appearing in parts that are published regularly",
+  uz: "serial, bo'lib chiqadigan hikoya"
+}, {
+  id: 221,
+  topic: "Exactly the Right Word",
+  word: "brought to trial",
+  pos: "phrase",
+  definition: "taken to a court of law to be tried and judged",
+  uz: "sudga tortilmoq"
+}, {
+  id: 222,
+  topic: "Exactly the Right Word",
+  word: "morally offensive",
+  pos: "phrase",
+  definition: "having a bad effect on people's minds because of unacceptable ideas",
+  uz: "axloqan nomaqbul"
+}, {
+  id: 223,
+  topic: "Exactly the Right Word",
+  word: "acquitted",
+  pos: "verb",
+  definition: "found not guilty of a crime in a court of law",
+  uz: "oqlanmoq"
+}, {
+  id: 224,
+  topic: "Exactly the Right Word",
+  word: "gatherings",
+  pos: "noun",
+  definition: "a meeting or coming together of a group of people",
+  uz: "yig'ilishlar"
+},
+// 17 - The Influence of Society
+{
+  id: 225,
+  topic: "The Influence of Society",
+  word: "instability",
+  pos: "noun",
+  definition: "the tendency to behave in an unpredictable or changeable manner",
+  uz: "beqarorlik"
+}, {
+  id: 226,
+  topic: "The Influence of Society",
+  word: "distortions",
+  pos: "noun",
+  definition: "the quality of being twisted out of shape or working abnormally",
+  uz: "buzilishlar, shakl o'zgarishi"
+}, {
+  id: 227,
+  topic: "The Influence of Society",
+  word: "thwarted",
+  pos: "verb",
+  definition: "prevent something or someone from accomplishing a purpose",
+  uz: "to'sqinlik qilmoq"
+}, {
+  id: 228,
+  topic: "The Influence of Society",
+  word: "compartmentalizing",
+  pos: "verb/gerund",
+  definition: "separate into distinct parts or categories",
+  uz: "bo'limlarga ajratish"
+}, {
+  id: 229,
+  topic: "The Influence of Society",
+  word: "strives for",
+  pos: "verb phrase",
+  definition: "try very hard to achieve or possess something",
+  uz: "intilmoq"
+}, {
+  id: 230,
+  topic: "The Influence of Society",
+  word: "pawn",
+  pos: "noun",
+  definition: "someone who is used or manipulated to further someone else's purposes",
+  uz: "vosita sifatida ishlatilgan odam"
+}, {
+  id: 231,
+  topic: "The Influence of Society",
+  word: "rebels",
+  pos: "verb",
+  definition: "resist or rise against authority, control, or tradition",
+  uz: "qarshi chiqmoq"
+}, {
+  id: 232,
+  topic: "The Influence of Society",
+  word: "submits",
+  pos: "verb",
+  definition: "yield oneself to the power or authority of someone else",
+  uz: "bo'ysunmoq"
+}, {
+  id: 233,
+  topic: "The Influence of Society",
+  word: "stereotyped",
+  pos: "adjective",
+  definition: "fixed or settled in form; characterized in an oversimplified way",
+  uz: "stereotip, bir xil qolipdagi"
+}, {
+  id: 234,
+  topic: "The Influence of Society",
+  word: "pedestrian",
+  pos: "adjective",
+  definition: "ordinary or unoriginal in a dull and boring way",
+  uz: "zerikarli, oddiy"
+}, {
+  id: 235,
+  topic: "The Influence of Society",
+  word: "urge",
+  pos: "noun",
+  definition: "a feeling or impulse that causes someone to act",
+  uz: "ichki turtki"
+}, {
+  id: 236,
+  topic: "The Influence of Society",
+  word: "patterned",
+  pos: "adjective",
+  definition: "caused to fit into a certain form or system of behavior",
+  uz: "shakllangan, qoliplangan"
+}, {
+  id: 237,
+  topic: "The Influence of Society",
+  word: "defect",
+  pos: "noun",
+  definition: "a fault or imperfection in design that causes failure",
+  uz: "nuqson"
+},
+// 18 - The Habit of Cheerfulness
+{
+  id: 238,
+  topic: "The Habit of Cheerfulness",
+  word: "benefit (from)",
+  pos: "verb",
+  definition: "receive good from something; gain an advantage",
+  uz: "foyda ko'rmoq"
+}, {
+  id: 239,
+  topic: "The Habit of Cheerfulness",
+  word: "humorous",
+  pos: "adjective",
+  definition: "amusing; funny",
+  uz: "kulgili"
+}, {
+  id: 240,
+  topic: "The Habit of Cheerfulness",
+  word: "remark",
+  pos: "noun",
+  definition: "comment; something said, often casually",
+  uz: "izoh, gap"
+}, {
+  id: 241,
+  topic: "The Habit of Cheerfulness",
+  word: "griping",
+  pos: "verb/gerund",
+  definition: "complain; moan persistently",
+  uz: "shikoyat qilmoq"
+}, {
+  id: 242,
+  topic: "The Habit of Cheerfulness",
+  word: "lambasting",
+  pos: "verb",
+  definition: "scold violently; criticize harshly",
+  uz: "qattiq tanqid qilmoq"
+}, {
+  id: 243,
+  topic: "The Habit of Cheerfulness",
+  word: "wind up",
+  pos: "phrasal verb",
+  definition: "finish; end up in a certain situation",
+  uz: "yakunlamoq, oxir-oqibat bo'lmoq"
+}, {
+  id: 244,
+  topic: "The Habit of Cheerfulness",
+  word: "executive",
+  pos: "noun",
+  definition: "person holding a high level position in a company",
+  uz: "rahbar, yuqori lavozimli shaxs"
+}, {
+  id: 245,
+  topic: "The Habit of Cheerfulness",
+  word: "tremendous",
+  pos: "adjective",
+  definition: "very great; enormous",
+  uz: "juda katta, ulkan"
+}, {
+  id: 246,
+  topic: "The Habit of Cheerfulness",
+  word: "affably",
+  pos: "adverb",
+  definition: "pleasantly; in a way that makes someone easy to talk to",
+  uz: "xushmuomala tarzda"
+}, {
+  id: 247,
+  topic: "The Habit of Cheerfulness",
+  word: "skipping",
+  pos: "verb/gerund",
+  definition: "walking by jumping lightly from one foot to the other",
+  uz: "sakrab yurish"
+}, {
+  id: 248,
+  topic: "The Habit of Cheerfulness",
+  word: "particularly",
+  pos: "adverb",
+  definition: "especially; more than usually",
+  uz: "ayniqsa"
+}, {
+  id: 249,
+  topic: "The Habit of Cheerfulness",
+  word: "for…sake",
+  pos: "phrase",
+  definition: "in order to help someone; for the good of someone",
+  uz: "... uchun, ... manfaatiga"
+}, {
+  id: 250,
+  topic: "The Habit of Cheerfulness",
+  word: "recitation",
+  pos: "noun",
+  definition: "saying a list of things aloud; reciting from memory",
+  uz: "yoddan o'qish"
+}, {
+  id: 251,
+  topic: "The Habit of Cheerfulness",
+  word: "accusation",
+  pos: "noun",
+  definition: "statement that someone has done wrong or is to be blamed",
+  uz: "ayblov"
+}, {
+  id: 252,
+  topic: "The Habit of Cheerfulness",
+  word: "pervade",
+  pos: "verb",
+  definition: "spread through every part of something",
+  uz: "butunlay tarqalmoq"
+}, {
+  id: 253,
+  topic: "The Habit of Cheerfulness",
+  word: "take for granted",
+  pos: "phrase",
+  definition: "benefit from something without showing appreciation",
+  uz: "qadrlamaslik, oddiy deb qabul qilish"
+}, {
+  id: 254,
+  topic: "The Habit of Cheerfulness",
+  word: "crabbed",
+  pos: "adjective",
+  definition: "bad-tempered; easily irritated",
+  uz: "badjahl, qo'rs"
+}, {
+  id: 255,
+  topic: "The Habit of Cheerfulness",
+  word: "clang",
+  pos: "verb",
+  definition: "make a loud, deep, ringing noise",
+  uz: "jaranglamoq"
+}, {
+  id: 256,
+  topic: "The Habit of Cheerfulness",
+  word: "foundation",
+  pos: "noun",
+  definition: "starting-point from which something is built; basis",
+  uz: "asos"
+},
+// 19 - Bigger May Not Be Better
+{
+  id: 257,
+  topic: "Bigger May Not Be Better",
+  word: "pasta",
+  pos: "noun",
+  definition: "a type of food made from flour, eggs, and water, formed into shapes",
+  uz: "makaron mahsuloti"
+}, {
+  id: 258,
+  topic: "Bigger May Not Be Better",
+  word: "plentiful",
+  pos: "adjective",
+  definition: "existing in large amounts; abundant",
+  uz: "mo'l, ko'p"
+}, {
+  id: 259,
+  topic: "Bigger May Not Be Better",
+  word: "appetizing",
+  pos: "adjective",
+  definition: "tasty; making you want to eat",
+  uz: "ishtaha ochuvchi, mazali"
+}, {
+  id: 260,
+  topic: "Bigger May Not Be Better",
+  word: "bargained for",
+  pos: "phrase",
+  definition: "expect something to happen; anticipate",
+  uz: "kutmoq, o'ylagandan ko'proq bo'lmoq"
+}, {
+  id: 261,
+  topic: "Bigger May Not Be Better",
+  word: "consumer",
+  pos: "noun",
+  definition: "a person who buys goods or uses services",
+  uz: "iste'molchi, xaridor"
+}, {
+  id: 262,
+  topic: "Bigger May Not Be Better",
+  word: "sum it up",
+  pos: "phrase",
+  definition: "summarize; describe briefly",
+  uz: "qisqacha xulosa qilmoq"
+}, {
+  id: 263,
+  topic: "Bigger May Not Be Better",
+  word: "intake",
+  pos: "noun",
+  definition: "the amount of food, drink, or air you eat, drink, or breathe",
+  uz: "iste'mol miqdori"
+}, {
+  id: 264,
+  topic: "Bigger May Not Be Better",
+  word: "permanent",
+  pos: "adjective",
+  definition: "continuing without marked change; lasting forever",
+  uz: "doimiy"
+}, {
+  id: 265,
+  topic: "Bigger May Not Be Better",
+  word: "restriction",
+  pos: "noun",
+  definition: "something limiting what you can do",
+  uz: "cheklov"
+}, {
+  id: 266,
+  topic: "Bigger May Not Be Better",
+  word: "excess",
+  pos: "noun",
+  definition: "a larger amount than is necessary or normal",
+  uz: "ortiqcha miqdor"
+}, {
+  id: 267,
+  topic: "Bigger May Not Be Better",
+  word: "all the rage",
+  pos: "phrase",
+  definition: "very popular and fashionable at a particular time",
+  uz: "juda mashhur, urf bo'lgan"
+}, {
+  id: 268,
+  topic: "Bigger May Not Be Better",
+  word: "waistlines",
+  pos: "noun",
+  definition: "the measurement around one's waist",
+  uz: "bel o'lchami"
+}, {
+  id: 269,
+  topic: "Bigger May Not Be Better",
+  word: "apparently",
+  pos: "adverb",
+  definition: "seeming to be the case; as it appears",
+  uz: "ko'rinishidan, chamasi"
+}, {
+  id: 270,
+  topic: "Bigger May Not Be Better",
+  word: "distort",
+  pos: "verb",
+  definition: "change in a negative way; give a false impression of",
+  uz: "buzmoq, noto'g'ri o'zgartirmoq"
+},
+// 20 - To Teach or Not to Teach
+{
+  id: 271,
+  topic: "To Teach or Not to Teach",
+  word: "emotionally",
+  pos: "adverb",
+  definition: "relating to one's feelings; in an emotional way",
+  uz: "hissiy jihatdan"
+}, {
+  id: 272,
+  topic: "To Teach or Not to Teach",
+  word: "innately",
+  pos: "adverb",
+  definition: "naturally; being born with a certain quality",
+  uz: "tug'ma ravishda"
+}, {
+  id: 273,
+  topic: "To Teach or Not to Teach",
+  word: "evil",
+  pos: "adjective",
+  definition: "very bad; wicked and harmful",
+  uz: "yovuz, zararli"
+}, {
+  id: 274,
+  topic: "To Teach or Not to Teach",
+  word: "doubted",
+  pos: "verb",
+  definition: "be uncertain about something; feel unsure",
+  uz: "shubhalanmoq"
+}, {
+  id: 275,
+  topic: "To Teach or Not to Teach",
+  word: "formal",
+  pos: "adjective",
+  definition: "based on accepted rules and customs; official",
+  uz: "rasmiy"
+}, {
+  id: 276,
+  topic: "To Teach or Not to Teach",
+  word: "envisioned",
+  pos: "verb",
+  definition: "have an image of something in one's mind; imagine",
+  uz: "tasavvur qilmoq"
+}, {
+  id: 277,
+  topic: "To Teach or Not to Teach",
+  word: "cultivation",
+  pos: "noun",
+  definition: "development; the act of raising or improving",
+  uz: "rivojlantirish, tarbiyalash"
+}, {
+  id: 278,
+  topic: "To Teach or Not to Teach",
+  word: "senses",
+  pos: "noun",
+  definition: "channels of perceiving the physical world, e.g. sight and hearing",
+  uz: "sezgilar"
+}, {
+  id: 279,
+  topic: "To Teach or Not to Teach",
+  word: "intellect",
+  pos: "noun",
+  definition: "the power of thinking; intelligence",
+  uz: "aql, tafakkur"
+}, {
+  id: 280,
+  topic: "To Teach or Not to Teach",
+  word: "memorizing",
+  pos: "verb/gerund",
+  definition: "learning and remembering something exactly",
+  uz: "yodlash"
+}, {
+  id: 281,
+  topic: "To Teach or Not to Teach",
+  word: "firsthand experience",
+  pos: "phrase",
+  definition: "knowledge learnt directly from personal participation",
+  uz: "bevosita tajriba"
+}, {
+  id: 282,
+  topic: "To Teach or Not to Teach",
+  word: "stand aside",
+  pos: "phrasal verb",
+  definition: "be uninvolved; keep out of the way",
+  uz: "chetga chiqmoq, aralashmaslik"
+}];
+const TOPICS = ["Barcha mavzular", ...Array.from(new Set(ALL_WORDS.map(w => w.topic)))];
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function getWrongOptions(correct, all, count = 3) {
+  const seen = new Set([correct.definition]);
+  const pool = shuffle(all.filter(w => w.id !== correct.id));
+  const result = [];
+  for (const w of pool) {
+    if (!seen.has(w.definition)) {
+      seen.add(w.definition);
+      result.push(w.definition);
+      if (result.length === count) break;
+    }
+  }
+  return result;
+}
+
+// ── Flashcard Component ──────────────────────────────────────────
+function Flashcard({
+  word,
+  onResult,
+  cardIndex,
+  total
+}) {
+  const [flipped, setFlipped] = useState(false);
+  const [answered, setAnswered] = useState(false);
+  useEffect(() => {
+    setFlipped(false);
+    setAnswered(false);
+  }, [word.id]);
+  function handleAnswer(correct) {
+    if (answered) return;
+    setAnswered(true);
+    setTimeout(() => onResult(correct), 600);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: 24,
+      width: "100%"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "#a0a0a0",
+      fontSize: 13,
+      fontFamily: "monospace"
+    }
+  }, cardIndex + 1, " / ", total), /*#__PURE__*/React.createElement("div", {
+    onClick: () => !answered && setFlipped(f => !f),
+    style: {
+      width: "100%",
+      maxWidth: 520,
+      minHeight: 220,
+      background: flipped ? "#1e2a1e" : "#1a1f2e",
+      border: `2px solid ${flipped ? "#4caf6e" : "#2e3a5a"}`,
+      borderRadius: 16,
+      cursor: answered ? "default" : "pointer",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "32px 28px",
+      gap: 12,
+      transition: "background 0.35s, border-color 0.35s",
+      textAlign: "center",
+      userSelect: "none",
+      boxShadow: flipped ? "0 0 32px #4caf6e22" : "0 0 24px #0003"
+    }
+  }, !flipped ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      letterSpacing: 3,
+      color: "#5a6a8a",
+      textTransform: "uppercase",
+      fontFamily: "monospace"
+    }
+  }, "So'z / Ibora"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 28,
+      fontWeight: 700,
+      color: "#e8eaf6",
+      letterSpacing: 0.5
+    }
+  }, word.word), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: "#4a5a7a",
+      fontStyle: "italic"
+    }
+  }, word.pos), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: "#4a6080",
+      marginTop: 8
+    }
+  }, "\uD83D\uDC46 Bosing \u2014 ta'rifni ko'ring")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      letterSpacing: 3,
+      color: "#4caf6e88",
+      textTransform: "uppercase",
+      fontFamily: "monospace"
+    }
+  }, "Ta'rif"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18,
+      fontWeight: 600,
+      color: "#c8e6c9",
+      lineHeight: 1.5
+    }
+  }, word.definition), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 40,
+      height: 1,
+      background: "#4caf6e44",
+      margin: "4px 0"
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      color: "#a5d6a7",
+      fontWeight: 500
+    }
+  }, "\uD83C\uDDFA\uD83C\uDDFF ", word.uz), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: "#4a7a5a",
+      marginTop: 4,
+      fontFamily: "monospace"
+    }
+  }, word.word, " \u2014 ", word.pos))), flipped && !answered && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 12,
+      width: "100%",
+      maxWidth: 520
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleAnswer(false),
+    style: {
+      flex: 1,
+      padding: "14px 0",
+      borderRadius: 10,
+      border: "2px solid #c62828",
+      background: "#1a0a0a",
+      color: "#ef9a9a",
+      fontWeight: 600,
+      fontSize: 15,
+      cursor: "pointer",
+      transition: "background 0.2s"
+    }
+  }, "\u2717 Bilmadim"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleAnswer(true),
+    style: {
+      flex: 1,
+      padding: "14px 0",
+      borderRadius: 10,
+      border: "2px solid #2e7d32",
+      background: "#0a1a0a",
+      color: "#a5d6a7",
+      fontWeight: 600,
+      fontSize: 15,
+      cursor: "pointer",
+      transition: "background 0.2s"
+    }
+  }, "\u2713 Bildim")), !flipped && /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "#3a4a6a",
+      fontSize: 13,
+      margin: 0
+    }
+  }, "Kartochkani bosib ta'rifni ko'ring"));
+}
+
+// ── Quiz Component ───────────────────────────────────────────────
+function Quiz({
+  word,
+  all,
+  onResult,
+  cardIndex,
+  total
+}) {
+  const [options] = useState(() => shuffle([word.definition, ...getWrongOptions(word, all)]));
+  const [selected, setSelected] = useState(null);
+  useEffect(() => {
+    setSelected(null);
+  }, [word.id]);
+  function pick(opt) {
+    if (selected !== null) return;
+    setSelected(opt);
+    const correct = opt === word.definition;
+    setTimeout(() => onResult(correct), 900);
+  }
+  const isWrong = selected !== null && selected !== word.definition;
+  const colors = opt => {
+    if (selected === null) return {
+      bg: "#1a1f2e",
+      border: "#2e3a5a",
+      color: "#c5cae9"
+    };
+    if (opt === word.definition) return {
+      bg: "#0a1a0a",
+      border: "#4caf50",
+      color: "#a5d6a7"
+    };
+    if (opt === selected) return {
+      bg: "#1a0a0a",
+      border: "#c62828",
+      color: "#ef9a9a"
+    };
+    return {
+      bg: "#111520",
+      border: "#1e2540",
+      color: "#4a5a7a"
+    };
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: 20,
+      width: "100%"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "#a0a0a0",
+      fontSize: 13,
+      fontFamily: "monospace"
+    }
+  }, cardIndex + 1, " / ", total), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      maxWidth: 520,
+      background: "#151a28",
+      border: "2px solid #2a3350",
+      borderRadius: 14,
+      padding: "28px 24px",
+      textAlign: "center",
+      boxShadow: "0 0 24px #0004"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      letterSpacing: 3,
+      color: "#5a6a8a",
+      marginBottom: 12,
+      fontFamily: "monospace",
+      textTransform: "uppercase"
+    }
+  }, "Bu so'zning ta'rifi qaysi?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 26,
+      fontWeight: 700,
+      color: "#e8eaf6"
+    }
+  }, word.word), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: "#4a5a7a",
+      fontStyle: "italic",
+      marginTop: 4
+    }
+  }, word.pos)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+      width: "100%",
+      maxWidth: 520
+    }
+  }, options.map((opt, i) => {
+    const c = colors(opt);
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: () => pick(opt),
+      style: {
+        padding: "16px 20px",
+        borderRadius: 10,
+        border: `2px solid ${c.border}`,
+        background: c.bg,
+        color: c.color,
+        fontWeight: 500,
+        fontSize: 14,
+        cursor: selected !== null ? "default" : "pointer",
+        textAlign: "left",
+        lineHeight: 1.5,
+        transition: "all 0.25s"
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "#4a5a7a",
+        fontFamily: "monospace",
+        marginRight: 10
+      }
+    }, ["A", "B", "C", "D"][i], "."), opt);
+  })), isWrong && /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      maxWidth: 520,
+      padding: "12px 16px",
+      borderRadius: 10,
+      background: "#1a0a0a",
+      border: "2px solid #c62828",
+      color: "#ef9a9a",
+      fontSize: 13,
+      lineHeight: 1.5
+    }
+  }, "\u2717 Noto'g'ri. To'g'ri javob: ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "#a5d6a7",
+      fontWeight: 600
+    }
+  }, word.definition), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "#6a9a8a",
+      marginTop: 4
+    }
+  }, "\uD83C\uDDFA\uD83C\uDDFF ", word.uz)));
+}
+
+// ── Type Answer Component ────────────────────────────────────────
+function TypeAnswer({
+  word,
+  onResult,
+  cardIndex,
+  total
+}) {
+  const [input, setInput] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const [correct, setCorrect] = useState(null);
+  const inputRef = useRef();
+  useEffect(() => {
+    setInput("");
+    setSubmitted(false);
+    setCorrect(null);
+    setTimeout(() => {
+      if (inputRef.current) inputRef.current.focus();
+    }, 50);
+  }, [word.id]);
+  function checkAnswer() {
+    if (!input.trim() || submitted) return;
+    const userAns = input.trim().toLowerCase().replace(/[^\w\s]/g, "").replace(/\s+/g, " ");
+    const correctAns = word.definition.toLowerCase().replace(/[^\w\s]/g, "").replace(/\s+/g, " ");
+    const stopWords = new Set(["a", "an", "the", "of", "or", "to", "in", "is", "it", "be", "as", "at", "so", "we", "he", "she", "they", "do", "its", "was", "for", "on", "are", "but", "not", "by", "e", "g"]);
+    const keyWords = correctAns.split(" ").filter(w => w.length > 3 && !stopWords.has(w));
+    const matched = keyWords.filter(kw => userAns.includes(kw)).length;
+    const isCorrect = keyWords.length === 0 ? userAns.includes(correctAns.split(" ")[0]) : matched / keyWords.length >= 0.35;
+    setCorrect(isCorrect);
+    setSubmitted(true);
+    setTimeout(() => onResult(isCorrect), 1400);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: 20,
+      width: "100%"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "#a0a0a0",
+      fontSize: 13,
+      fontFamily: "monospace"
+    }
+  }, cardIndex + 1, " / ", total), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      maxWidth: 520,
+      background: "#151a28",
+      border: "2px solid #2a3350",
+      borderRadius: 14,
+      padding: "28px 24px",
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      letterSpacing: 3,
+      color: "#5a6a8a",
+      marginBottom: 12,
+      fontFamily: "monospace",
+      textTransform: "uppercase"
+    }
+  }, "Inglizcha ta'rifini yozing"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 26,
+      fontWeight: 700,
+      color: "#e8eaf6"
+    }
+  }, word.word), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: "#4a5a7a",
+      fontStyle: "italic",
+      marginTop: 4
+    }
+  }, word.pos), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: "#5a7aaa",
+      marginTop: 8
+    }
+  }, "\uD83C\uDDFA\uD83C\uDDFF ", word.uz)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      maxWidth: 520,
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("textarea", {
+    ref: inputRef,
+    value: input,
+    onChange: e => setInput(e.target.value),
+    onKeyDown: e => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        checkAnswer();
+      }
+    },
+    disabled: submitted,
+    placeholder: "Ta'rifini ingliz tilida yozing...",
+    style: {
+      width: "100%",
+      minHeight: 80,
+      borderRadius: 10,
+      border: submitted ? correct ? "2px solid #4caf50" : "2px solid #c62828" : "2px solid #2e3a5a",
+      background: "#0e1218",
+      color: "#c5cae9",
+      fontSize: 15,
+      padding: "14px 16px",
+      resize: "none",
+      fontFamily: "inherit",
+      outline: "none",
+      boxSizing: "border-box",
+      transition: "border-color 0.3s"
+    }
+  }), submitted && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "14px 16px",
+      borderRadius: 10,
+      background: correct ? "#0a1a0a" : "#1a0a0a",
+      border: `2px solid ${correct ? "#4caf50" : "#c62828"}`,
+      color: correct ? "#a5d6a7" : "#ef9a9a"
+    }
+  }, correct ? "✓ To'g'ri!" : "✗ Noto'g'ri", " Ta'rif: ", /*#__PURE__*/React.createElement("em", null, word.definition)), !submitted && /*#__PURE__*/React.createElement("button", {
+    onClick: checkAnswer,
+    style: {
+      padding: "14px 0",
+      borderRadius: 10,
+      border: "2px solid #3f51b5",
+      background: "#0a0f1e",
+      color: "#9fa8da",
+      fontWeight: 600,
+      fontSize: 15,
+      cursor: "pointer"
+    }
+  }, "Tekshirish \u2192")));
+}
+
+// ── Results Screen ───────────────────────────────────────────────
+function Results({
+  score,
+  total,
+  wrong,
+  onRetryWrong,
+  onHome,
+  onRetry
+}) {
+  const pct = Math.round(score / total * 100);
+  const emoji = pct >= 90 ? "🏆" : pct >= 70 ? "💪" : pct >= 50 ? "📖" : "🔄";
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      gap: 24,
+      width: "100%",
+      maxWidth: 480
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 56
+    }
+  }, emoji), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 42,
+      fontWeight: 800,
+      color: pct >= 70 ? "#a5d6a7" : "#ef9a9a"
+    }
+  }, pct, "%"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "#7a8aaa",
+      fontSize: 15,
+      marginTop: 4
+    }
+  }, score, " / ", total, " to'g'ri")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      background: "#1a1f2e",
+      borderRadius: 12,
+      padding: "16px 20px",
+      border: "1px solid #2e3a5a"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: "#5a6a8a",
+      marginBottom: 8,
+      fontFamily: "monospace"
+    }
+  }, "NATIJA"), pct >= 90 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "#a5d6a7",
+      margin: 0
+    }
+  }, "Ajoyib! Barcha so'zlarni yaxshi o'zlashtirdingiz."), pct >= 70 && pct < 90 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "#fff176",
+      margin: 0
+    }
+  }, "Yaxshi natija! Ozgina mashq qilsa yanada yaxshi bo'ladi."), pct >= 50 && pct < 70 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "#ffcc80",
+      margin: 0
+    }
+  }, "O'rtacha. Noto'g'ri so'zlarni takrorlab ko'ring."), pct < 50 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: "#ef9a9a",
+      margin: 0
+    }
+  }, "Ko'proq mashq kerak. Qayta urinib ko'ring!")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+      width: "100%"
+    }
+  }, wrong.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: onRetryWrong,
+    style: {
+      padding: "14px 0",
+      borderRadius: 10,
+      border: "2px solid #c62828",
+      background: "#1a0a0a",
+      color: "#ef9a9a",
+      fontWeight: 600,
+      fontSize: 15,
+      cursor: "pointer"
+    }
+  }, "\uD83D\uDD04 Xato so'zlarni qayta (", wrong.length, " ta)"), /*#__PURE__*/React.createElement("button", {
+    onClick: onRetry,
+    style: {
+      padding: "14px 0",
+      borderRadius: 10,
+      border: "2px solid #3f51b5",
+      background: "#0a0f1e",
+      color: "#9fa8da",
+      fontWeight: 600,
+      fontSize: 15,
+      cursor: "pointer"
+    }
+  }, "\u21BB Qaytadan boshlash"), /*#__PURE__*/React.createElement("button", {
+    onClick: onHome,
+    style: {
+      padding: "14px 0",
+      borderRadius: 10,
+      border: "2px solid #2e3a5a",
+      background: "#111520",
+      color: "#7a8aaa",
+      fontWeight: 600,
+      fontSize: 15,
+      cursor: "pointer"
+    }
+  }, "\uD83C\uDFE0 Bosh sahifa")));
+}
+
+// ── Main App ─────────────────────────────────────────────────────
+function VocabApp() {
+  const [screen, setScreen] = useState("home"); // home | study | results
+  const [mode, setMode] = useState("flashcard"); // flashcard | quiz | type
+  const [topic, setTopic] = useState("Barcha mavzular");
+  const [queue, setQueue] = useState([]);
+  const [cardIdx, setCardIdx] = useState(0);
+  const [score, setScore] = useState(0);
+  const [wrong, setWrong] = useState([]);
+  const [progress, setProgress] = useState({}); // id -> { correct, incorrect }
+
+  const filteredWords = topic === "Barcha mavzular" ? ALL_WORDS : ALL_WORDS.filter(w => w.topic === topic);
+  function startStudy(wordsToStudy) {
+    const q = shuffle(wordsToStudy);
+    setQueue(q);
+    setCardIdx(0);
+    setScore(0);
+    setWrong([]);
+    setScreen("study");
+  }
+  function handleResult(isCorrect) {
+    const word = queue[cardIdx];
+    setProgress(p => ({
+      ...p,
+      [word.id]: {
+        correct: (p[word.id]?.correct || 0) + (isCorrect ? 1 : 0),
+        incorrect: (p[word.id]?.incorrect || 0) + (isCorrect ? 0 : 1)
+      }
+    }));
+    if (isCorrect) setScore(s => s + 1);else setWrong(w => [...w, word]);
+    if (cardIdx + 1 >= queue.length) {
+      setScreen("results");
+    } else {
+      setCardIdx(i => i + 1);
+    }
+  }
+  const masteredCount = Object.values(progress).filter(p => p.correct >= 2 && p.incorrect === 0).length;
+  const weakWords = filteredWords.filter(w => (progress[w.id]?.incorrect || 0) > 0);
+
+  // ── HOME ──
+  if (screen === "home") {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        minHeight: "100vh",
+        background: "#0d1117",
+        fontFamily: "'Segoe UI', sans-serif",
+        color: "#e0e0e0",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "32px 16px",
+        boxSizing: "border-box"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: "center",
+        marginBottom: 32,
+        maxWidth: 520,
+        width: "100%"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        letterSpacing: 4,
+        color: "#3f51b5",
+        fontFamily: "monospace",
+        marginBottom: 8,
+        textTransform: "uppercase"
+      }
+    }, "ELS2 Vocabulary Trainer"), /*#__PURE__*/React.createElement("h1", {
+      style: {
+        margin: 0,
+        fontSize: 28,
+        fontWeight: 800,
+        color: "#e8eaf6",
+        lineHeight: 1.2
+      }
+    }, "Active Recall", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "#5c6bc0"
+      }
+    }, "So'z Mashqi")), /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: "#4a5a7a",
+        fontSize: 14,
+        marginTop: 8
+      }
+    }, ALL_WORDS.length, " ta so'z \xB7 20 mavzu")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 12,
+        width: "100%",
+        maxWidth: 520,
+        marginBottom: 28
+      }
+    }, [{
+      label: "Jami",
+      val: filteredWords.length,
+      col: "#5c6bc0"
+    }, {
+      label: "O'zlashtirilgan",
+      val: masteredCount,
+      col: "#4caf50"
+    }, {
+      label: "Qiyin",
+      val: weakWords.length,
+      col: "#ef5350"
+    }].map(s => /*#__PURE__*/React.createElement("div", {
+      key: s.label,
+      style: {
+        flex: 1,
+        background: "#151a28",
+        borderRadius: 10,
+        padding: "14px 8px",
+        border: `1px solid #2e3a5a`,
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 22,
+        fontWeight: 800,
+        color: s.col
+      }
+    }, s.val), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: "#5a6a8a",
+        marginTop: 2
+      }
+    }, s.label)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: "100%",
+        maxWidth: 520,
+        marginBottom: 20
+      }
+    }, /*#__PURE__*/React.createElement("label", {
+      style: {
+        fontSize: 12,
+        color: "#5a6a8a",
+        letterSpacing: 2,
+        fontFamily: "monospace",
+        textTransform: "uppercase"
+      }
+    }, "Mavzu tanlang"), /*#__PURE__*/React.createElement("select", {
+      value: topic,
+      onChange: e => setTopic(e.target.value),
+      style: {
+        width: "100%",
+        marginTop: 8,
+        padding: "12px 14px",
+        borderRadius: 10,
+        background: "#151a28",
+        border: "2px solid #2e3a5a",
+        color: "#c5cae9",
+        fontSize: 14,
+        outline: "none",
+        cursor: "pointer"
+      }
+    }, TOPICS.map(t => /*#__PURE__*/React.createElement("option", {
+      key: t,
+      value: t
+    }, t, " (", t === "Barcha mavzular" ? ALL_WORDS.length : ALL_WORDS.filter(w => w.topic === t).length, ")")))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: "100%",
+        maxWidth: 520,
+        marginBottom: 24
+      }
+    }, /*#__PURE__*/React.createElement("label", {
+      style: {
+        fontSize: 12,
+        color: "#5a6a8a",
+        letterSpacing: 2,
+        fontFamily: "monospace",
+        textTransform: "uppercase"
+      }
+    }, "O'rganish usuli"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8,
+        marginTop: 8
+      }
+    }, [{
+      key: "flashcard",
+      icon: "🃏",
+      label: "Kartochka"
+    }, {
+      key: "quiz",
+      icon: "🎯",
+      label: "Test"
+    }, {
+      key: "type",
+      icon: "✍️",
+      label: "Yozish"
+    }].map(m => /*#__PURE__*/React.createElement("button", {
+      key: m.key,
+      onClick: () => setMode(m.key),
+      style: {
+        flex: 1,
+        padding: "12px 6px",
+        borderRadius: 10,
+        border: mode === m.key ? "2px solid #5c6bc0" : "2px solid #2e3a5a",
+        background: mode === m.key ? "#1a1f35" : "#111520",
+        color: mode === m.key ? "#9fa8da" : "#5a6a8a",
+        fontWeight: mode === m.key ? 700 : 400,
+        fontSize: 13,
+        cursor: "pointer",
+        transition: "all 0.2s",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 4
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 20
+      }
+    }, m.icon), m.label)))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        width: "100%",
+        maxWidth: 520
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => startStudy(filteredWords),
+      style: {
+        padding: "16px 0",
+        borderRadius: 12,
+        border: "2px solid #5c6bc0",
+        background: "linear-gradient(135deg, #1a1f35, #0f1428)",
+        color: "#c5cae9",
+        fontWeight: 700,
+        fontSize: 17,
+        cursor: "pointer",
+        letterSpacing: 0.5
+      }
+    }, "\uD83D\uDE80 Boshlash \u2014 ", filteredWords.length, " ta so'z"), weakWords.length > 0 && /*#__PURE__*/React.createElement("button", {
+      onClick: () => startStudy(weakWords),
+      style: {
+        padding: "14px 0",
+        borderRadius: 12,
+        border: "2px solid #c62828",
+        background: "#1a0a0a",
+        color: "#ef9a9a",
+        fontWeight: 600,
+        fontSize: 15,
+        cursor: "pointer"
+      }
+    }, "\uD83D\uDD25 Qiyin so'zlar \u2014 ", weakWords.length, " ta")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 20,
+        maxWidth: 520,
+        width: "100%",
+        padding: "14px 16px",
+        background: "#111520",
+        borderRadius: 10,
+        border: "1px solid #1e2540"
+      }
+    }, mode === "flashcard" && /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        color: "#5a6a8a",
+        fontSize: 13
+      }
+    }, "\uD83C\uDCCF ", /*#__PURE__*/React.createElement("b", {
+      style: {
+        color: "#7a8aaa"
+      }
+    }, "Kartochka:"), " So'zni ko'rib, ta'rifini o'zingiz eslab ko'ring, keyin tekshiring."), mode === "quiz" && /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        color: "#5a6a8a",
+        fontSize: 13
+      }
+    }, "\uD83C\uDFAF ", /*#__PURE__*/React.createElement("b", {
+      style: {
+        color: "#7a8aaa"
+      }
+    }, "Test:"), " To'rtta variant ichidan to'g'ri ta'rifni tanlang."), mode === "type" && /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        color: "#5a6a8a",
+        fontSize: 13
+      }
+    }, "\u270D\uFE0F ", /*#__PURE__*/React.createElement("b", {
+      style: {
+        color: "#7a8aaa"
+      }
+    }, "Yozish:"), " O'zbek tarjimasini ko'rib, inglizcha ta'rifini yozib bering.")));
+  }
+
+  // ── STUDY ──
+  if (screen === "study") {
+    const currentWord = queue[cardIdx];
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        minHeight: "100vh",
+        background: "#0d1117",
+        fontFamily: "'Segoe UI', sans-serif",
+        color: "#e0e0e0",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        padding: "24px 16px",
+        boxSizing: "border-box"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        width: "100%",
+        maxWidth: 520,
+        marginBottom: 20
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => setScreen("home"),
+      style: {
+        background: "none",
+        border: "1px solid #2e3a5a",
+        borderRadius: 8,
+        color: "#5a6a8a",
+        padding: "6px 12px",
+        cursor: "pointer",
+        fontSize: 13
+      }
+    }, "\u2190 Orqaga"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: "#5a6a8a",
+        fontFamily: "monospace"
+      }
+    }, mode === "flashcard" ? "🃏" : mode === "quiz" ? "🎯" : "✍️", " ", score, " \u2713")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: "100%",
+        maxWidth: 520,
+        height: 4,
+        background: "#1e2540",
+        borderRadius: 4,
+        marginBottom: 24,
+        overflow: "hidden"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: "100%",
+        borderRadius: 4,
+        width: `${cardIdx / queue.length * 100}%`,
+        background: "linear-gradient(90deg, #3f51b5, #5c6bc0)",
+        transition: "width 0.3s"
+      }
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: "#5c6bc0",
+        background: "#1a1f35",
+        padding: "4px 14px",
+        borderRadius: 20,
+        border: "1px solid #2e3a60",
+        marginBottom: 20,
+        letterSpacing: 1,
+        fontFamily: "monospace",
+        maxWidth: 300,
+        textAlign: "center",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
+      }
+    }, currentWord.topic), mode === "flashcard" && /*#__PURE__*/React.createElement(Flashcard, {
+      key: currentWord.id,
+      word: currentWord,
+      onResult: handleResult,
+      cardIndex: cardIdx,
+      total: queue.length
+    }), mode === "quiz" && /*#__PURE__*/React.createElement(Quiz, {
+      key: currentWord.id,
+      word: currentWord,
+      all: ALL_WORDS,
+      onResult: handleResult,
+      cardIndex: cardIdx,
+      total: queue.length
+    }), mode === "type" && /*#__PURE__*/React.createElement(TypeAnswer, {
+      key: currentWord.id,
+      word: currentWord,
+      onResult: handleResult,
+      cardIndex: cardIdx,
+      total: queue.length
+    }));
+  }
+
+  // ── RESULTS ──
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: "100vh",
+      background: "#0d1117",
+      fontFamily: "'Segoe UI', sans-serif",
+      color: "#e0e0e0",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      padding: "32px 16px",
+      boxSizing: "border-box"
+    }
+  }, /*#__PURE__*/React.createElement(Results, {
+    score: score,
+    total: queue.length,
+    wrong: wrong,
+    onRetryWrong: () => startStudy(wrong),
+    onHome: () => setScreen("home"),
+    onRetry: () => startStudy([...queue])
+  }));
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(VocabApp));
+
+  </script>
+  <script>
+    document.getElementById("loading").style.display="none";
+    document.getElementById("root").style.display="block";
+  </script>
+</body>
+</html>
